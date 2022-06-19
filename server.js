@@ -6,9 +6,12 @@ const User = require('./model/user')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
+//testing purpose secret (has to be in a safer place!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
-mongoose.connect('mongodb://localhost:27017/login-app-db', {
+//we replace mongoDB cluster api instead of this..
+// mongoose.connect('mongodb://localhost:27017/login-app-db', {
+mongoose.connect('mongodb+srv://cu4nt0m:135792468@cluster0.8ddtz.mongodb.net/?retryWrites=true&w=majority', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 	useCreateIndex: true
