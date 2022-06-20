@@ -21,6 +21,12 @@ const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
 app.use(bodyParser.json())
 
+app.get('/', async (req, res) => {
+	return res.json({
+		message: 'hi'
+	})
+})
+
 app.post('/api/change-password', async (req, res) => {
 	const { token, newpassword: plainTextPassword } = req.body
 
