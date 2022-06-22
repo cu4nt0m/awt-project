@@ -21,7 +21,6 @@ const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
 app.use(bodyParser.json())
 
-const cors = require('cors');
 app.use(cors({
     origin: '*'
 }));
