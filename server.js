@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 const User = require('./model/user')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-
+const cors = require('cors')
 //testing purpose secret (has to be in a safer place!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
@@ -20,6 +20,11 @@ mongoose.connect('mongodb+srv://cu4nt0m:135792468@cluster0.8ddtz.mongodb.net/?re
 const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
 app.use(bodyParser.json())
+
+const cors = require('cors');
+app.use(cors({
+    origin: '*'
+}));
 
 app.get('/', async (req, res) => {
 	return res.json({
