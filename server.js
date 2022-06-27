@@ -108,6 +108,13 @@ app.post('/api/register', async (req, res) => {
 		})
 	}
 
+	if (!username.match(/^([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+		return res.json({
+			status: 'error',
+			error: 'email is not valid'
+		})
+	}
+
 	const password = await bcrypt.hash(plainTextPassword, 10)
 
 	try {
