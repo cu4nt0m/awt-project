@@ -68,7 +68,7 @@ app.post('/api/change-password', async (req, res) => {
 app.post('/api/login', async (req, res) => {
 	const { username, password } = req.body
 	const user = await User.findOne({ username }).lean()
-
+	console.log(user)
 	if (!user) {
 		return res.json({ status: 'error', error: 'Invalid username/password' })
 	}
@@ -84,7 +84,7 @@ app.post('/api/login', async (req, res) => {
 			JWT_SECRET
 		)
 
-		return res.json({ status: 'ok', data: token })
+		return res.json({ status: 'ok', data: token, _id: user._id })
 	}
 
 	res.json({ status: 'error', error: 'Invalid username/password' })
