@@ -11,7 +11,7 @@ const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhf
 
 //we replace mongoDB cluster api instead of this..
 // mongoose.connect('mongodb://localhost:27017/login-app-db', {
-mongoose.connect('mongodb+srv://cu4nt0m:135792468@cluster0.8ddtz.mongodb.net/?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://admin:youknowwho@cluster0.k2dxyt2.mongodb.net/?retryWrites=true&w=majority', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 	useCreateIndex: true
