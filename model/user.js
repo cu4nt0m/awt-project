@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const UserSchema = new mongoose.Schema(
 	{
-		username: { 
+		email: {
 			type: String,
 			required: true,
 			unique: true,
@@ -14,11 +14,18 @@ const UserSchema = new mongoose.Schema(
 		firstName: {
 			type: String,
 			required: true
-		}
+		},
+		lastName: {
+			type: String,
+			required: true
+		},
+		joinedRooms: [
+			{_id: String}
+		]
 	},
 	{ collection: 'users' }
 )
 
-const model = mongoose.model('UserSchema', UserSchema)
+userModel = mongoose.model('UserSchema', UserSchema)
 
-module.exports = model
+module.exports = userModel

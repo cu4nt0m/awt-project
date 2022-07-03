@@ -11,7 +11,7 @@ const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhf
 
 //we replace mongoDB cluster api instead of this..
 // mongoose.connect('mongodb://localhost:27017/login-app-db', {
-mongoose.connect('mongodb+srv://admin:youknowwho@cluster0.k2dxyt2.mongodb.net/?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryWrites=true&w=majority', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 	useCreateIndex: true
@@ -31,7 +31,7 @@ app.get('/', async (req, res) => {
 	})
 })
 
-app.post('/api/change-password', async (req, res) => {
+app.put('/api/change-password', async (req, res) => {
 	const { token, newpassword: plainTextPassword } = req.body
 
 	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
@@ -65,21 +65,22 @@ app.post('/api/change-password', async (req, res) => {
 	}
 })
 
+
 app.post('/api/login', async (req, res) => {
-	const { username, password } = req.body
-	const user = await User.findOne({ username }).lean()
+	const { email, password } = req.body
+	const user = await User.findOne({ email }).lean()
 	console.log(user)
 	if (!user) {
-		return res.json({ status: 'error', error: 'Invalid username/password' })
+		return res.json({ status: 'error', error: 'Invalid email/password' })
 	}
 
 	if (await bcrypt.compare(password, user.password)) {
-		// the username, password combination is successful
+		// the email, password combination is successful
 
 		const token = jwt.sign(
 			{
 				id: user._id,
-				username: user.username
+				email: user.email,
 			},
 			JWT_SECRET
 		)
@@ -89,38 +90,65 @@ app.post('/api/login', async (req, res) => {
 
 	res.json({ status: 'error', error: 'Invalid username/password' })
 })
+// app.post('/api/createRoom', async (req, res) => {
+// 	const { email, password } = req.body
+// 	const user = await User.findOne({ username }).lean()
+// 	console.log(user)
+// 	if (!user) {
+// 		return res.json({ status: 'error', error: 'Invalid email/password' })
+// 	}
+
+// 	if (await bcrypt.compare(password, user.password)) {
+// 		// the email, password combination is successful
+
+// 		const token = jwt.sign(
+// 			{
+// 				id: user._id,
+// 				email: user.email,
+// 			},
+// 			JWT_SECRET
+// 		)
+
+// 		return res.json({ status: 'ok', data: token, _id: user._id })
+// 	}
+
+// 	res.json({ status: 'error', error: 'Invalid username/password' })
+// })
 
 app.post('/api/register', async (req, res) => {
-	const { username, password: plainTextPassword } = req.body
-
-	if (!username || typeof username !== 'string') {
-		return res.json({ status: 'error', error: 'Invalid username' })
+	const { email, password: plainTextPassword, firstName, lastName } = req.body
+	console.log(req.body)
+	if (!email || typeof email !== 'string') {
+		return res.status(401).json({ status: 'error', error: 'Invalid email' })
 	}
-
+	
 	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
 		return res.json({ status: 'error', error: 'Invalid password' })
 	}
-
+	
 	if (plainTextPassword.length < 5) {
 		return res.json({
 			status: 'error',
 			error: 'Password too small. Should be atleast 6 characters'
 		})
 	}
-
-	if (!username.match(/^([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+	
+	if (!email.match(/^([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
 		return res.json({
 			status: 'error',
 			error: 'email is not valid'
 		})
 	}
-
+	
 	const password = await bcrypt.hash(plainTextPassword, 10)
-
+	
 	try {
+		console.log('hi')
 		const response = await User.create({
-			username,
-			password
+			email,
+			password,
+			firstName,
+			lastName
 		})
 		console.log('User created successfully: ', response)
 	} catch (error) {
