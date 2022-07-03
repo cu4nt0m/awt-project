@@ -20,8 +20,10 @@ const UserSchema = new mongoose.Schema(
 			required: true
 		},
 		joinedRooms: [
-			{_id: String}
-		]
+			{
+				_id: String,
+			} //room1
+		],
 	},
 	{ collection: 'users' }
 )

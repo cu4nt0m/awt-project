@@ -3,6 +3,7 @@ const path = require('path')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const User = require('./model/user')
+const Chatroom = require('./model/chatroom')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
@@ -33,7 +34,7 @@ app.get('/', async (req, res) => {
 
 app.put('/api/change-password', async (req, res) => {
 	const { token, newpassword: plainTextPassword } = req.body
-
+	console.log('headers',req.headers)
 	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
 		return res.json({ status: 'error', error: 'Invalid password' })
 	}
@@ -47,7 +48,7 @@ app.put('/api/change-password', async (req, res) => {
 
 	try {
 		const user = jwt.verify(token, JWT_SECRET)
-
+		console.log('jwt verify:', user)
 		const _id = user.id
 
 		const password = await bcrypt.hash(plainTextPassword, 10)
@@ -85,35 +86,63 @@ app.post('/api/login', async (req, res) => {
 			JWT_SECRET
 		)
 
-		return res.json({ status: 'ok', data: token, _id: user._id })
+		return res.json({ status: 'ok', token, _id: user._id, firstName: user.firstName, lastName: user.lastName })
 	}
 
 	res.json({ status: 'error', error: 'Invalid username/password' })
 })
-// app.post('/api/createRoom', async (req, res) => {
-// 	const { email, password } = req.body
-// 	const user = await User.findOne({ username }).lean()
-// 	console.log(user)
-// 	if (!user) {
-// 		return res.json({ status: 'error', error: 'Invalid email/password' })
-// 	}
 
-// 	if (await bcrypt.compare(password, user.password)) {
-// 		// the email, password combination is successful
+app.get('/api/getUserInfo', async (req, res) => {
+	const { authorization } = req.headers
+	const token = authorization.split('Bearer ')[1]
 
-// 		const token = jwt.sign(
-// 			{
-// 				id: user._id,
-// 				email: user.email,
-// 			},
-// 			JWT_SECRET
-// 		)
+	try {
+		const {email} = jwt.verify(token, JWT_SECRET)
+		const user = await User.findOne({ email })
+		console.log(user)
+	
+		res.json({status: 201, message: 'got the info', user})
+		
+	} catch (error) {
+		console.log(error);
+		res.json({status: 401, error: 'there is something wrong'})
+	}
 
-// 		return res.json({ status: 'ok', data: token, _id: user._id })
-// 	}
+})
 
-// 	res.json({ status: 'error', error: 'Invalid username/password' })
-// })
+app.post('/api/createRoom', async (req, res) => {
+	const {title, description} = req.body
+	const { authorization } = req.headers
+
+	const token = authorization.split('Bearer ')[1]
+	// const user = await User.findOne({ username }).lean()
+	
+	//create chatroom
+	try {
+		const {email, id} = jwt.verify(token, JWT_SECRET)
+		console.log('hi')
+		const response = await Chatroom.create({
+			title,
+			description,
+			creator: id,
+		})
+
+		await User.update(
+			{_id: mongoose.Types.ObjectId(id)},
+			{
+				$push: {
+					joinedRooms: {_id: response._id.toString()}
+				}
+			}
+		)
+	} catch (error) {
+		console.log(error);
+		res.json({status: 401, error: 'Something is wrong'})
+		throw error
+	}
+
+	res.json({ status: 201, message: 'Room succesfully created' })
+})
 
 app.post('/api/register', async (req, res) => {
 	const { email, password: plainTextPassword, firstName, lastName } = req.body
