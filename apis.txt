@@ -48,3 +48,15 @@ expected responses: {
 **created room's id will be pushed to User's (joinedRooms) array that you can access with the 
 /api/getUserInfo GET request with the valid User's token in the header.
 
+
+-------------------------------------------------------------------------------------
+/api/getRooms GET
+
+required data: 
+
+    header: {authorization: *token*}
+
+expected responses: {
+    { status: 401, error: 'Something is wrong' },
+    { status: 201, message: 'Room succesfully created' }
+}

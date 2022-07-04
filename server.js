@@ -34,7 +34,7 @@ app.get('/', async (req, res) => {
 
 app.put('/api/change-password', async (req, res) => {
 	const { token, newpassword: plainTextPassword } = req.body
-	console.log('headers',req.headers)
+	// console.log('headers',req.headers)
 	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
 		return res.json({ status: 'error', error: 'Invalid password' })
 	}
@@ -48,7 +48,7 @@ app.put('/api/change-password', async (req, res) => {
 
 	try {
 		const user = jwt.verify(token, JWT_SECRET)
-		console.log('jwt verify:', user)
+		// console.log('jwt verify:', user)
 		const _id = user.id
 
 		const password = await bcrypt.hash(plainTextPassword, 10)
@@ -70,7 +70,7 @@ app.put('/api/change-password', async (req, res) => {
 app.post('/api/login', async (req, res) => {
 	const { email, password } = req.body
 	const user = await User.findOne({ email }).lean()
-	console.log(user)
+	// console.log(user)
 	if (!user) {
 		return res.json({ status: 'error', error: 'Invalid email/password' })
 	}
@@ -110,6 +110,52 @@ app.get('/api/getUserInfo', async (req, res) => {
 
 })
 
+app.get('/api/getRooms', async (req, res) => {
+	const {authorization} = req.headers
+
+	
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const verified = jwt.verify(token, JWT_SECRET)
+		if (verified) {
+			const rooms = await Chatroom.find()
+			console.log('rooms', rooms)
+		}
+	} catch (error) {
+		return res.status(401).json({error: 'something went wrong getting the rooms'})
+	}
+
+	res.status(201).json({message: 'success'})
+})
+
+app.put('/api/joinRoom', async (req, res) => {
+	const { roomId } = req.body
+	const { authorization } = req.headers
+
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const {id} = jwt.verify(token, JWT_SECRET)
+		
+		if (id) {
+			// console.log(user);
+			//add user id to room's joinedUsers array..
+			await Chatroom.updateOne(
+				{_id: mongoose.Types.ObjectId(roomId)},
+				{
+					$addToSet: {
+						joinedUsers: {_id: id}
+					}
+				}
+			)
+
+		}
+	} catch (error) {
+		console.log(error);
+		res.json({status: 401, error: 'Something is wrong'})
+	}
+	res.json({ status: 201, message: 'Joined the room successfully' })
+})
+
 app.post('/api/createRoom', async (req, res) => {
 	const {title, description} = req.body
 	const { authorization } = req.headers
@@ -146,7 +192,7 @@ app.post('/api/createRoom', async (req, res) => {
 
 app.post('/api/register', async (req, res) => {
 	const { email, password: plainTextPassword, firstName, lastName } = req.body
-	console.log(req.body)
+	// console.log(req.body)
 	if (!email || typeof email !== 'string') {
 		return res.status(401).json({ status: 'error', error: 'Invalid email' })
 	}
@@ -172,7 +218,7 @@ app.post('/api/register', async (req, res) => {
 	const password = await bcrypt.hash(plainTextPassword, 10)
 	
 	try {
-		console.log('hi')
+		// console.log('hi')
 		const response = await User.create({
 			email,
 			password,

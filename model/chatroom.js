@@ -19,7 +19,10 @@ const ChatroomSchema = new mongoose.Schema(
             required: true
         },
         joinedUsers: [
-            {_id: String} //user1
+            {
+				_id: String,
+			
+			} //user1
         ],
 		messages: [
 			{
@@ -31,7 +34,6 @@ const ChatroomSchema = new mongoose.Schema(
 				content: String,
 				sender: {
 					type: String,
-					_id: String
 				}
 			}
 		]
