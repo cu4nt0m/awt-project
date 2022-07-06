@@ -7,6 +7,7 @@ const Chatroom = require('./model/chatroom')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
+const { application } = require('express')
 //testing purpose secret (has to be in a safer place!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
@@ -153,6 +154,36 @@ app.get('/api/getUsers', async (req, res) => {
 	return res.json({message: 'getUsersApi'})
 })
 
+app.delete('/api/deleteRoom', async (req, res) => {
+	const { roomId }  = req.body
+	const { authorization } = req.headers
+
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const { id } = jwt.verify(token, JWT_SECRET)
+
+		if ( id ) {
+			const room = await Chatroom.findOne({ _id: mongoose.Types.ObjectId(roomId)})
+			if (room === null) {
+				return res.json({status: 'error', error: 'invalid room'})
+			}
+
+			if (room.creator === id) {
+				await Chatroom.deleteOne({ _id: roomId })
+				return res.json({status: 'success', message: 'room deleted successfully'})
+			} else {
+				return res.json({status: 'fail', error: 'User may not be the owner'})
+			}
+
+		}
+	} catch (error) {
+		console.log(error)
+		return res.json({status: 'error', error: 'something is wrong'})
+	}
+
+	res.json({message: 'deleteRoom api'})
+})
+
 app.put('/api/joinRoom', async (req, res) => {
 	const { roomId }  = req.body
 	const { authorization } = req.headers
@@ -172,7 +203,7 @@ app.put('/api/joinRoom', async (req, res) => {
 					}
 				}
 			)
-			await User.update(
+			await User.updateOne(
 				{_id: mongoose.Types.ObjectId(id)},
 				{
 					$addToSet: {
