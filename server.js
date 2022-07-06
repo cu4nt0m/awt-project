@@ -132,7 +132,7 @@ app.put('/api/joinRoom', async (req, res) => {
 	const { roomId } = req.body
 	const { authorization } = req.headers
 
-	try {
+	try { 
 		const token = authorization.split('Bearer ')[1]
 		const {id} = jwt.verify(token, JWT_SECRET)
 		
