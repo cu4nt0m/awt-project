@@ -113,27 +113,25 @@ app.get('/api/getUserInfo', async (req, res) => {
 app.get('/api/getRooms', async (req, res) => {
 	const {authorization} = req.headers
 
-	
 	try {
 		const token = authorization.split('Bearer ')[1]
 		const verified = jwt.verify(token, JWT_SECRET)
 		if (verified) {
 			const rooms = await Chatroom.find()
 			console.log('rooms', rooms)
-			res.status(201).json({message: 'success', rooms: rooms})
+			return res.status(201).json({message: 'success', data: rooms})
 		}
 	} catch (error) {
 		return res.status(401).json({error: 'something went wrong getting the rooms'})
 	}
 
-	
 })
 
 app.put('/api/joinRoom', async (req, res) => {
 	const { roomId } = req.body
 	const { authorization } = req.headers
 
-	try { 
+	try {
 		const token = authorization.split('Bearer ')[1]
 		const {id} = jwt.verify(token, JWT_SECRET)
 		
