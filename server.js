@@ -170,6 +170,9 @@ app.delete('/api/deleteRoom', async (req, res) => {
 
 			if (room.creator === id) {
 				await Chatroom.deleteOne({ _id: roomId })
+				await User.findOneAndUpdate({ _id: mongoose.Types.ObjectId(id)}, {
+					$pull: { joinedRooms: {_id: roomId}}
+				})
 				return res.json({status: 'success', message: 'room deleted successfully'})
 			} else {
 				return res.json({status: 'fail', error: 'User may not be the owner'})
@@ -237,7 +240,7 @@ app.post('/api/createRoom', async (req, res) => {
 			creator: id,
 		})
 
-		await User.update(
+		await User.updateOne(
 			{_id: mongoose.Types.ObjectId(id)},
 			{
 				$push: {
