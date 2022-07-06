@@ -120,12 +120,12 @@ app.get('/api/getRooms', async (req, res) => {
 		if (verified) {
 			const rooms = await Chatroom.find()
 			console.log('rooms', rooms)
+			return res.status(201).json({message: 'success', rooms})
 		}
 	} catch (error) {
 		return res.status(401).json({error: 'something went wrong getting the rooms'})
 	}
-
-	res.status(201).json({message: 'success'})
+	res.status(200).json({message: 'success'})
 })
 
 app.put('/api/joinRoom', async (req, res) => {
