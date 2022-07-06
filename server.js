@@ -170,7 +170,7 @@ app.delete('/api/deleteRoom', async (req, res) => {
 
 			if (room.creator === id) {
 				await Chatroom.deleteOne({ _id: roomId })
-				await User.findOneAndUpdate({ _id: mongoose.Types.ObjectId(id)}, {
+				await User.updateOne({ _id: mongoose.Types.ObjectId(id)}, {
 					$pull: { joinedRooms: {_id: roomId}}
 				})
 				return res.json({status: 'success', message: 'room deleted successfully'})
@@ -185,6 +185,34 @@ app.delete('/api/deleteRoom', async (req, res) => {
 	}
 
 	res.json({message: 'deleteRoom api'})
+})
+
+app.put('/api/leaveRoom', async (req, res) => {
+	const { roomId } = req.body
+	const { authorization } = req.headers
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const {id} = jwt.verify(token, JWT_SECRET)
+
+		if (id) {
+			const room = await Chatroom.findOne({ _id: mongoose.Types.ObjectId(roomId)})
+			if (room === null) {
+				return res.json({status: 'error', error: 'invalid room'})
+			}
+			if (room.joinedUsers.some(user => user._id === id)) {
+				await User.updateOne({ _id: mongoose.Types.ObjectId(id)}, {
+					$pull: { joinedRooms: {_id: roomId}}
+				})
+				await Chatroom.updateOne({ _id: mongoose.Types.ObjectId(roomId)}, {
+					$pull: { joinedUsers: {_id: id}}
+				})
+				return res.json({status: 'success', message: 'left the room'})
+
+			}
+		}
+	} catch (error) {
+		return res.json({status: 'error', error: 'something happened'})
+	}
 })
 
 app.put('/api/joinRoom', async (req, res) => {
