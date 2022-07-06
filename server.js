@@ -119,7 +119,6 @@ app.get('/api/getRooms', async (req, res) => {
 		const verified = jwt.verify(token, JWT_SECRET)
 		if (verified) {
 			const rooms = await Chatroom.find()
-			console.log('rooms', rooms)
 			res.status(201).json({message: 'success', rooms: rooms})
 		}
 	} catch (error) {
@@ -130,21 +129,28 @@ app.get('/api/getRooms', async (req, res) => {
 })
 
 app.put('/api/joinRoom', async (req, res) => {
-	const { roomId } = req.body
+	const  roomId  = req.body
 	const { authorization } = req.headers
 
 	try { 
 		const token = authorization.split('Bearer ')[1]
 		const {id} = jwt.verify(token, JWT_SECRET)
-		
+
 		if (id) {
-			// console.log(user);
 			//add user id to room's joinedUsers array..
 			await Chatroom.updateOne(
-				{_id: mongoose.Types.ObjectId(roomId)},
+				{_id: roomId},
 				{
 					$addToSet: {
 						joinedUsers: {_id: id}
+					}
+				}
+			)
+			await User.update(
+				{_id: mongoose.Types.ObjectId(id)},
+				{
+					$push: {
+						joinedRooms: {_id: roomId}
 					}
 				}
 			)
