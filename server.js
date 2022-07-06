@@ -150,7 +150,7 @@ app.get('/api/getUsers', async (req, res) => {
 		res.json({status: 'error', error: 'something wrong'})
 	}
 
-	res.json({message: 'getUsersApi'})
+	return res.json({message: 'getUsersApi'})
 })
 
 app.put('/api/joinRoom', async (req, res) => {
