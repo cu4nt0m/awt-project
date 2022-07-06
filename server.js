@@ -113,7 +113,6 @@ app.get('/api/getUserInfo', async (req, res) => {
 app.get('/api/getRooms', async (req, res) => {
 	const {authorization} = req.headers
 
-	
 	try {
 		const token = authorization.split('Bearer ')[1]
 		const verified = jwt.verify(token, JWT_SECRET)
