@@ -128,6 +128,29 @@ app.get('/api/getRooms', async (req, res) => {
 	res.status(200).json({message: 'success'})
 })
 
+app.get('/api/getUsers', async (req, res) => {
+	const {authorization} = req.headers
+	const filteredUsers = [];
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const verified = jwt.verify(token, JWT_SECRET)
+		if (verified) {
+			const users = await User.find()
+			users.forEach(user => filteredUsers.push({
+				firstName: user.firstName,
+				lastName: user.lastName,
+				_id: user._id
+			}
+			))
+			console.log(filteredUsers);
+			res.json({status: 'success', data: filteredUsers})
+		}
+	} catch (error) {
+		console.log(error);
+		res.json({status: 'error', error: 'something wrong'})
+	}
+})
+
 app.put('/api/joinRoom', async (req, res) => {
 	const { roomId }  = req.body
 	const { authorization } = req.headers
