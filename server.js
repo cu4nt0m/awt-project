@@ -134,6 +134,7 @@ app.get('/api/getUsers', async (req, res) => {
 	try {
 		const token = authorization.split('Bearer ')[1]
 		const verified = jwt.verify(token, JWT_SECRET)
+
 		if (verified) {
 			const users = await User.find()
 			users.forEach(user => filteredUsers.push({
@@ -142,13 +143,14 @@ app.get('/api/getUsers', async (req, res) => {
 				_id: user._id
 			}
 			))
-			console.log(filteredUsers);
-			res.json({status: 'success', data: filteredUsers})
+			return res.json({status: 'success', data: filteredUsers})
 		}
 	} catch (error) {
 		console.log(error);
 		res.json({status: 'error', error: 'something wrong'})
 	}
+
+	res.json({message: 'getUsersApi'})
 })
 
 app.put('/api/joinRoom', async (req, res) => {
