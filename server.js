@@ -4,10 +4,11 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const User = require('./model/user')
 const Chatroom = require('./model/chatroom')
+const Msg = require('./models/messages');
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
-const { application } = require('express')
+const io = require('socket.io')(3000)
 //testing purpose secret (has to be in a safer place!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
@@ -35,7 +36,7 @@ app.get('/', async (req, res) => {
 
 app.put('/api/change-password', async (req, res) => {
 	const { token, newpassword: plainTextPassword } = req.body
-	// console.log('headers',req.headers)
+	console.log('headers',req.headers)
 	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
 		return res.json({ status: 'error', error: 'Invalid password' })
 	}
@@ -49,7 +50,7 @@ app.put('/api/change-password', async (req, res) => {
 
 	try {
 		const user = jwt.verify(token, JWT_SECRET)
-		// console.log('jwt verify:', user)
+		console.log('jwt verify:', user)
 		const _id = user.id
 
 		const password = await bcrypt.hash(plainTextPassword, 10)
@@ -71,7 +72,7 @@ app.put('/api/change-password', async (req, res) => {
 app.post('/api/login', async (req, res) => {
 	const { email, password } = req.body
 	const user = await User.findOne({ email }).lean()
-	// console.log(user)
+	console.log(user)
 	if (!user) {
 		return res.json({ status: 'error', error: 'Invalid email/password' })
 	}
@@ -111,146 +112,6 @@ app.get('/api/getUserInfo', async (req, res) => {
 
 })
 
-app.get('/api/getRooms', async (req, res) => {
-	const {authorization} = req.headers
-
-	
-	try {
-		const token = authorization.split('Bearer ')[1]
-		const verified = jwt.verify(token, JWT_SECRET)
-		if (verified) {
-			const rooms = await Chatroom.find()
-			console.log('rooms', rooms)
-			return res.status(201).json({message: 'success', rooms})
-		}
-	} catch (error) {
-		return res.status(401).json({error: 'something went wrong getting the rooms'})
-	}
-	res.status(200).json({message: 'success'})
-})
-
-app.get('/api/getUsers', async (req, res) => {
-	const {authorization} = req.headers
-	const filteredUsers = [];
-	try {
-		const token = authorization.split('Bearer ')[1]
-		const verified = jwt.verify(token, JWT_SECRET)
-
-		if (verified) {
-			const users = await User.find()
-			users.forEach(user => filteredUsers.push({
-				firstName: user.firstName,
-				lastName: user.lastName,
-				_id: user._id
-			}
-			))
-			return res.json({status: 'success', data: filteredUsers})
-		}
-	} catch (error) {
-		console.log(error);
-		res.json({status: 'error', error: 'something wrong'})
-	}
-
-	return res.json({message: 'getUsersApi'})
-})
-
-app.delete('/api/deleteRoom', async (req, res) => {
-	const { roomId }  = req.body
-	const { authorization } = req.headers
-
-	try {
-		const token = authorization.split('Bearer ')[1]
-		const { id } = jwt.verify(token, JWT_SECRET)
-
-		if ( id ) {
-			const room = await Chatroom.findOne({ _id: mongoose.Types.ObjectId(roomId)})
-			if (room === null) {
-				return res.json({status: 'error', error: 'invalid room'})
-			}
-
-			if (room.creator === id) {
-				await Chatroom.deleteOne({ _id: roomId })
-				await User.updateOne({ _id: mongoose.Types.ObjectId(id)}, {
-					$pull: { joinedRooms: {_id: roomId}}
-				})
-				return res.json({status: 'success', message: 'room deleted successfully'})
-			} else {
-				return res.json({status: 'fail', error: 'User may not be the owner'})
-			}
-
-		}
-	} catch (error) {
-		console.log(error)
-		return res.json({status: 'error', error: 'something is wrong'})
-	}
-
-	res.json({message: 'deleteRoom api'})
-})
-
-app.put('/api/leaveRoom', async (req, res) => {
-	const { roomId } = req.body
-	const { authorization } = req.headers
-	try {
-		const token = authorization.split('Bearer ')[1]
-		const {id} = jwt.verify(token, JWT_SECRET)
-
-		if (id) {
-			const room = await Chatroom.findOne({ _id: mongoose.Types.ObjectId(roomId)})
-			if (room === null) {
-				return res.json({status: 'error', error: 'invalid room'})
-			}
-			if (room.joinedUsers.some(user => user._id === id)) {
-				await User.updateOne({ _id: mongoose.Types.ObjectId(id)}, {
-					$pull: { joinedRooms: {_id: roomId}}
-				})
-				await Chatroom.updateOne({ _id: mongoose.Types.ObjectId(roomId)}, {
-					$pull: { joinedUsers: {_id: id}}
-				})
-				return res.json({status: 'success', message: 'left the room'})
-
-			}
-		}
-	} catch (error) {
-		return res.json({status: 'error', error: 'something happened'})
-	}
-})
-
-app.put('/api/joinRoom', async (req, res) => {
-	const { roomId }  = req.body
-	const { authorization } = req.headers
-
-	try {
-		const token = authorization.split('Bearer ')[1]
-		const {id} = jwt.verify(token, JWT_SECRET)
-		
-		if (id) {
-			// console.log(user);
-			//add user id to room's joinedUsers array..
-			await Chatroom.updateOne(
-				{_id: mongoose.Types.ObjectId(roomId)},
-				{
-					$addToSet: {
-						joinedUsers: {_id: id}
-					}
-				}
-			)
-			await User.updateOne(
-				{_id: mongoose.Types.ObjectId(id)},
-				{
-					$addToSet: {
-						joinedRooms: {_id: roomId}
-					}
-				}
-			)
-
-		}
-	} catch (error) {
-		console.log(error);
-		res.json({status: 401, error: 'Something is wrong'})
-	}
-	return res.json({ status: 201, message: 'Joined room successfully' })
-})
-
 app.post('/api/createRoom', async (req, res) => {
 	const {title, description} = req.body
 	const { authorization } = req.headers
@@ -268,7 +129,7 @@ app.post('/api/createRoom', async (req, res) => {
 			creator: id,
 		})
 
-		await User.updateOne(
+		await User.update(
 			{_id: mongoose.Types.ObjectId(id)},
 			{
 				$push: {
@@ -287,7 +148,7 @@ app.post('/api/createRoom', async (req, res) => {
 
 app.post('/api/register', async (req, res) => {
 	const { email, password: plainTextPassword, firstName, lastName } = req.body
-	// console.log(req.body)
+	console.log(req.body)
 	if (!email || typeof email !== 'string') {
 		return res.status(401).json({ status: 'error', error: 'Invalid email' })
 	}
@@ -313,7 +174,7 @@ app.post('/api/register', async (req, res) => {
 	const password = await bcrypt.hash(plainTextPassword, 10)
 	
 	try {
-		// console.log('hi')
+		console.log('hi')
 		const response = await User.create({
 			email,
 			password,
@@ -331,6 +192,27 @@ app.post('/api/register', async (req, res) => {
 
 	res.json({ status: 'ok' })
 })
+
+//socket IO
+//should we make an API for it?
+io.on('connection', (socket) => {
+    Msg.find().then(result => {
+        socket.emit('output-messages', result)
+    })
+    console.log('a user connected');
+    socket.emit('message', 'Hello world');
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+    socket.on('chatmessage', msg => {
+        const message = new Msg({ msg });
+        message.save().then(() => {
+            io.emit('message', msg)
+        })
+
+
+    })
+});
 
 app.listen(9999, () => {
 	console.log('Server up at 9999')
