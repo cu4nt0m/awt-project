@@ -203,7 +203,7 @@ app.get('/api/getUsers', async (req, res) => {
 app.delete('/api/deleteRoom', async (req, res) => {
 	// const { roomId }  = req.body
 	const { authorization } = req.headers
-	const { roomId } = req.params
+	const { roomId } = req.query.roomId
 	try {
 		const token = authorization.split('Bearer ')[1]
 		const { id } = jwt.verify(token, JWT_SECRET)
