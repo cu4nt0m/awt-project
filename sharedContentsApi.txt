@@ -1,0 +1,33 @@
+/api/shareVideo POST
+
+required data:
+body: {
+    roomId: "A_VALID_ROOMID",
+    videoId: String,
+    videoTitle: String,
+    videoKind: String
+
+}
+
+header: {
+    authorization: "Bearer TOKEN"
+}
+
+
+/api/shareBook POST
+
+required data:
+body: {
+    roomId: "A_VALID_ROOMID",
+    bookImageLink: String,
+    bookThumbnail: String,
+    bookTitle: String,
+    bookAuthors: [String],
+    bookPreviewLink: String
+
+}
+
+header: {
+    authorization: "Bearer TOKEN"
+}
+

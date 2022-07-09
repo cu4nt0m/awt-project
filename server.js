@@ -7,7 +7,6 @@ const Chatroom = require('./model/chatroom')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
-const { application } = require('express')
 //testing purpose secret (has to be in a safer place!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
@@ -202,9 +201,9 @@ app.get('/api/getUsers', async (req, res) => {
 })
 
 app.delete('/api/deleteRoom', async (req, res) => {
-	const { roomId }  = req.body
+	// const { roomId }  = req.body
 	const { authorization } = req.headers
-
+	const { roomId } = req.params
 	try {
 		const token = authorization.split('Bearer ')[1]
 		const { id } = jwt.verify(token, JWT_SECRET)
