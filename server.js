@@ -67,6 +67,53 @@ app.put('/api/change-password', async (req, res) => {
 	}
 })
 
+app.post('/api/register', async (req, res) => {
+	const { email, password: plainTextPassword, firstName, lastName } = req.body
+	// console.log(req.body)
+	if (!email || typeof email !== 'string') {
+		return res.status(401).json({ status: 'error', error: 'Invalid email' })
+	}
+	
+	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid password' })
+	}
+	
+	if (plainTextPassword.length < 5) {
+		return res.json({
+			status: 'error',
+			error: 'Password too small. Should be atleast 6 characters'
+		})
+	}
+	
+	if (!email.match(/^([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+		return res.json({
+			status: 'error',
+			error: 'email is not valid'
+		})
+	}
+	
+	const password = await bcrypt.hash(plainTextPassword, 10)
+	
+	try {
+		// console.log('hi')
+		const response = await User.create({
+			email,
+			password,
+			firstName,
+			lastName
+		})
+		console.log('User created successfully: ', response)
+	} catch (error) {
+		if (error.code === 11000) {
+			// duplicate key
+			return res.json({ status: 11000, error: 'Username already in use' })
+		}
+		throw error
+	}
+
+	res.json({ status: 'ok' })
+})
+
 
 app.post('/api/login', async (req, res) => {
 	const { email, password } = req.body
@@ -261,7 +308,6 @@ app.post('/api/createRoom', async (req, res) => {
 	//create chatroom
 	try {
 		const {email, id} = jwt.verify(token, JWT_SECRET)
-		console.log('hi')
 		const response = await Chatroom.create({
 			title,
 			description,
@@ -285,52 +331,85 @@ app.post('/api/createRoom', async (req, res) => {
 	res.json({ status: 201, message: 'Room succesfully created' })
 })
 
-app.post('/api/register', async (req, res) => {
-	const { email, password: plainTextPassword, firstName, lastName } = req.body
-	// console.log(req.body)
-	if (!email || typeof email !== 'string') {
-		return res.status(401).json({ status: 'error', error: 'Invalid email' })
-	}
-	
-	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
-		return res.json({ status: 'error', error: 'Invalid password' })
-	}
-	
-	if (plainTextPassword.length < 5) {
-		return res.json({
-			status: 'error',
-			error: 'Password too small. Should be atleast 6 characters'
-		})
-	}
-	
-	if (!email.match(/^([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-		return res.json({
-			status: 'error',
-			error: 'email is not valid'
-		})
-	}
-	
-	const password = await bcrypt.hash(plainTextPassword, 10)
-	
-	try {
-		// console.log('hi')
-		const response = await User.create({
-			email,
-			password,
-			firstName,
-			lastName
-		})
-		console.log('User created successfully: ', response)
-	} catch (error) {
-		if (error.code === 11000) {
-			// duplicate key
-			return res.json({ status: 11000, error: 'Username already in use' })
-		}
-		throw error
-	}
+app.post('/api/shareVideo', async (req, res) => {
+	const { authorization } = req.headers
+	const {roomId, videoId, videoTitle, videoKind} = req.body
 
-	res.json({ status: 'ok' })
+	if (!authorization) return res.json({status: 'Unauthorized', error: 'User has not authorized yet.'})
+
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const {id} = jwt.verify(token, JWT_SECRET)
+
+		if(id) {
+			// return res.json({status: 'success'})
+			const response = await Chatroom.updateOne(
+				{_id: mongoose.Types.ObjectId(roomId)},
+				{
+					$push: {
+						videos: {
+							videoId,
+							videoTitle,
+							videoKind,
+							sender: { _id: id}
+						}
+					}
+				}
+			)
+			if (response.nModified === 0) {
+				return res.json({ status: 'error', error: 'share failed'})
+			}
+			return res.json({ status: 'success', message: 'Video is successfully shared'})
+		}
+
+
+	} catch (error) {
+		return res.json({...error})
+	}
 })
+
+app.post('/api/shareBook', async (req, res) => {
+	const { authorization } = req.headers
+	const {roomId, bookImageLink, bookThumbnail, bookTitle, bookAuthors, bookPreviewLink} = req.body
+
+	if (!authorization) return res.json({status: 'Unauthorized', error: 'User has not authorized yet.'})
+
+	try {
+		const token = authorization.split('Bearer ')[1]
+		const {id} = jwt.verify(token, JWT_SECRET)
+
+		if(id) {
+			
+			// return res.json({status: 'success'})
+			const response = await Chatroom.updateOne(
+				{_id: mongoose.Types.ObjectId(roomId)},
+				{
+					$push: {
+						books: {
+							bookImageLink,
+							bookThumbnail,
+							bookTitle,
+							bookAuthors: [...bookAuthors],
+							bookPreviewLink,
+							sender: { _id: id}
+						}
+					}
+				}
+			)
+			if (response.nModified === 0) {
+				return res.json({ status: 'error', error: 'share failed'})
+			}
+			return res.json({ status: 'success', message: 'Book is successfully shared'})
+			
+		}
+
+
+	} catch (error) {
+		return res.json({...error})
+	}
+})
+
+
 
 app.listen(9999, () => {
 	console.log('Server up at 9999')

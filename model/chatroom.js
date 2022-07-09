@@ -32,7 +32,7 @@ const ChatroomSchema = new mongoose.Schema(
 				},
 				content: String,
 				sender: {
-					type: String,
+					_id: String,
 				}
 			}
 		],
@@ -43,7 +43,7 @@ const ChatroomSchema = new mongoose.Schema(
 					default: Date.now
 				},
 				sender: {
-					type: String,
+					_id: String,
 				},
 				bookImageLink: String,
 				bookThumbnail: String,
@@ -59,7 +59,7 @@ const ChatroomSchema = new mongoose.Schema(
 					default: Date.now
 				},
 				sender: {
-					type: String,
+					_id: String,
 				},
 				videoId: String,
 				videoTitle: String,
