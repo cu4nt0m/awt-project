@@ -21,7 +21,12 @@ app.use(cors({
 }));
 const server = http.createServer(app).listen(9999, () => console.log('server is running 9999'))
 
-const io = require('socket.io')(server)
+const io = require('socket.io')(server, {
+	cors: {
+	  origin: "http://localhost:4200",
+	  methods: ["GET", "POST"]
+	}
+  })
 
 //testing purpose secret (has to be in a safer place in HEROKU ENV!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
