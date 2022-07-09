@@ -7,14 +7,17 @@ const Chatroom = require('./model/chatroom')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
-const socketio = require('socket.io')
 const app = express()
+const http = require('http')
 app.use(bodyParser.json())
+// app.listen(9999, () => {
+// 	console.log('Server up at 9999')
+// })
+// app.listen(4000) = () => console.log('runs')
+const server = http.createServer(app).listen(9999, () => console.log('server is running 9999'))
 
-const http = require('http'); 
-const server = http.createServer(app);
+const io = require('socket.io')(server)
 
-const io = socketio(server); 
 //testing purpose secret (has to be in a safer place in HEROKU ENV!)
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
@@ -32,9 +35,6 @@ app.use('/', express.static(path.join(__dirname, 'static')))
 app.use(cors({
 	origin: '*'
 }));
-app.listen(9999, () => {
-	console.log('Server up at 9999')
-})
 
 // io.on('connection', socket => {
 	app.get('/', async (req, res) => {
