@@ -36,7 +36,7 @@ app.listen(9999, () => {
 	console.log('Server up at 9999')
 })
 
-io.on('connection', socket => {
+// io.on('connection', socket => {
 	app.get('/', async (req, res) => {
 		return res.json({
 			message: 'hi'
@@ -419,6 +419,11 @@ io.on('connection', socket => {
 		}
 	})
 
-})
+	io.on('connection', socket => {
+		app.post('/api/sendMessage', (req, res) => {
+			return res.json({msg: 'hi'})
+		})
+		console.log('connection event works!')
+	})
 
-
+// })
