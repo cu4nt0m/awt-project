@@ -26,7 +26,6 @@ const ChatroomSchema = new mongoose.Schema(
         ],
 		messages: [
 			{
-				mediaType: String,  //message, video, book
 				createdAt: {
 					type: Date,
 					default: Date.now
@@ -35,6 +34,36 @@ const ChatroomSchema = new mongoose.Schema(
 				sender: {
 					type: String,
 				}
+			}
+		],
+		books: [
+			{
+				createdAt: {
+					type: Date,
+					default: Date.now
+				},
+				sender: {
+					type: String,
+				},
+				bookImageLink: String,
+				bookThumbnail: String,
+				bookTitle: String,
+				bookAuthors: [String],
+				bookPreviewLink: String
+			}
+		],
+		videos: [
+			{
+				createdAt: {
+					type: Date,
+					default: Date.now
+				},
+				sender: {
+					type: String,
+				},
+				videoId: String,
+				videoTitle: String,
+				videoKind: String
 			}
 		]
 	},
