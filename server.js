@@ -14,6 +14,11 @@ app.use(bodyParser.json())
 // 	console.log('Server up at 9999')
 // })
 // app.listen(4000) = () => console.log('runs')
+app.use('/', express.static(path.join(__dirname, 'static')))
+
+app.use(cors({
+	origin: '*'
+}));
 const server = http.createServer(app).listen(9999, () => console.log('server is running 9999'))
 
 const io = require('socket.io')(server)
@@ -30,11 +35,6 @@ mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryW
 })
 
 
-app.use('/', express.static(path.join(__dirname, 'static')))
-
-app.use(cors({
-	origin: '*'
-}));
 
 // io.on('connection', socket => {
 	app.get('/', async (req, res) => {
