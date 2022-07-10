@@ -465,7 +465,7 @@ const {content, roomId} = req.body
 try {
 	const token = authorization.split('Bearer ')[1]
 	const {id} = jwt.verify(token, JWT_SECRET)
-	const user = await User.fineOne({ _id: id }).lean()
+	const user = await User.findOne({ _id: id }).lean()
 
 	if (!id) return res.json({message: 'invalid user Id'})
 	
