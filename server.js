@@ -333,11 +333,23 @@ app.post('/api/createRoom', async (req, res) => {
 	//create chatroom
 	try {
 		const {email, id} = jwt.verify(token, JWT_SECRET)
+		const user = await User.findOne({_id: id}).lean()
 		const response = await Chatroom.create({
 			title,
 			description,
 			creator: id,
 		})
+
+		await Chatroom.updateOne({ _id: response._id}, {
+			$addToSet: {
+				joinedUsers: {
+					_id: user._id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+				}
+			}
+		})
+
 
 		await User.updateOne(
 			{_id: mongoose.Types.ObjectId(id)},
