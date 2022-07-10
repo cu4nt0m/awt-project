@@ -445,6 +445,9 @@ io.on('connection', socket => {
 	app.post('/api/sendMessage', (req, res) => {
 		return res.json({msg: 'hi'})
 	})
+	socket.on('message', message => {
+		console.log(message)
+	})
 	console.log('connection event works!')
 })
 
