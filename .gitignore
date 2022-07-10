@@ -1,1 +1,18 @@
+# node.js
+#
 node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build files
+#
+build/
+
+# IntelliJ
+#
+.idea
+
+.DS_Store
+
+
+.env
