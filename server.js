@@ -447,7 +447,7 @@ app.post('/api/shareBook', async (req, res) => {
 })
 
 io.on('connection', socket => {
-	socket.on('accessChannel', ({_id, roomId}) => {
+	socket.on('accessChannel', async ({_id, roomId}) => {
 		const user = await User.findOne({_id}).lean()
 		const testUser = {
 			_id,
