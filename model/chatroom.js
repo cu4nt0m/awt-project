@@ -44,6 +44,8 @@ const ChatroomSchema = new mongoose.Schema(
 				},
 				sender: {
 					_id: String,
+					firstName: String,
+					lastName: String,
 				},
 				bookImageLink: String,
 				bookThumbnail: String,
@@ -60,6 +62,8 @@ const ChatroomSchema = new mongoose.Schema(
 				},
 				sender: {
 					_id: String,
+					firstName: String,
+					lastName: String,
 				},
 				videoId: String,
 				videoTitle: String,
