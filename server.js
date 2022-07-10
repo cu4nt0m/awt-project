@@ -523,6 +523,12 @@ io.on('connection', socket => {
                 //  renderMessage(announcer, `${newUser.username}  ` + notify));
 			
 	})
+	
+	socket.on('leaveChannel', (roomId) => {
+		console.log('user has left');
+		socket.leave(roomId)
+	})
+
 	socket.on('sendMessage', async ({roomId, _id, content}) => {
 		const user = await User.findOne({_id}).lean()
 
