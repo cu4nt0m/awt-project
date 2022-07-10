@@ -466,6 +466,8 @@ try {
 	const token = authorization.split('Bearer ')[1]
 	const {id} = jwt.verify(token, JWT_SECRET)
 	const user = await User.fineOne({ _id: id }).lean()
+
+	if (!id) return res.json({message: 'invalid user Id'})
 	
 	if (id) {
 		const response = await Chatroom.updateOne({ _id: roomId }, {
@@ -480,11 +482,13 @@ try {
 				}
 			}
 		})
+
+		return res.json({status: 'success', message: 'message posted successfully'})
 	}
 	
 } catch (error) {
 	console.log(error);
-	res.json({...error})
+	return res.json({status: 'error', error: 'error posting the message'})
 }
 })
 
