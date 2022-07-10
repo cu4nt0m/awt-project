@@ -519,7 +519,7 @@ io.on('connection', socket => {
                 //  renderMessage(announcer, `${newUser.username}  ` + notify));
 			
 	})
-	socket.on('sendMessage', ({roomId, _id, content}) => {
+	socket.on('sendMessage', async ({roomId, _id, content}) => {
 		const user = await User.findOne({_id}).lean()
 
 		const message = {
