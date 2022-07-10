@@ -33,6 +33,8 @@ const ChatroomSchema = new mongoose.Schema(
 				content: String,
 				sender: {
 					_id: String,
+					firstName: String,
+					lastName: String
 				}
 			}
 		],
