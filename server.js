@@ -291,13 +291,18 @@ app.put('/api/joinRoom', async (req, res) => {
 		const {id} = jwt.verify(token, JWT_SECRET)
 		
 		if (id) {
+			const user = await User.findOne({_id: id}).lean()
 			// console.log(user);
 			//add user id to room's joinedUsers array..
 			await Chatroom.updateOne(
 				{_id: mongoose.Types.ObjectId(roomId)},
 				{
 					$addToSet: {
-						joinedUsers: {_id: id}
+						joinedUsers: {
+							_id: id,
+							firstName: user.firstName,
+							lastName: user.lastName,
+						}
 					}
 				}
 			)
@@ -442,7 +447,7 @@ app.post('/api/shareBook', async (req, res) => {
 })
 
 io.on('connection', socket => {
-	socket.on('joinRoom', ({_id, roomId}) => {
+	socket.on('accessChannel', ({_id, roomId}) => {
 		const user = await User.findOne({_id}).lean()
 		const testUser = {
 			_id,
@@ -454,7 +459,7 @@ io.on('connection', socket => {
 		socket.emit('joinConfirm', 'joined successfully')
 	})
 	socket.on('sendMessage', message => {
-			
+		console.log('sendMessage event is working: ', message)
 	})
 	// app.post('/api/sendMessage', (req, res) => {
 	// const { authorization } = req.headers
