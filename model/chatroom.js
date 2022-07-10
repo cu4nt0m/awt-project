@@ -63,7 +63,8 @@ const ChatroomSchema = new mongoose.Schema(
 				},
 				videoId: String,
 				videoTitle: String,
-				videoKind: String
+				videoKind: String,
+				videoThumbnail: String
 			}
 		]
 	},

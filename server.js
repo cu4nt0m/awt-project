@@ -1,5 +1,6 @@
 const express = require('express')
 const path = require('path')
+require('dotenv').config();
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const User = require('./model/user')
@@ -29,15 +30,17 @@ const io = require('socket.io')(server, {
   })
 
 //testing purpose secret (has to be in a safer place in HEROKU ENV!)
-const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
+const JWT_SECRET = process.env.JWT_SECRET
 
 //username and password has to be in .env in HEROKU
 // mongoose.connect('mongodb://localhost:27017/login-app-db', {
-mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryWrites=true&w=majority', {
+mongoose.connect(`mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.k2dxyt2.mongodb.net/?retryWrites=true&w=majority`, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 	useCreateIndex: true
-})
+}).then(
+	console.log('Database is connected')
+).catch(error => console.log('There is an error connecting to database'))
 
 
 
@@ -133,6 +136,7 @@ mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryW
 	app.post('/api/login', async (req, res) => {
 		const { email, password } = req.body
 		const user = await User.findOne({ email }).lean()
+		console.log(user);
 		// console.log(user)
 		if (!user) {
 			return res.json({ status: 'error', error: 'Invalid email/password' })
@@ -348,13 +352,14 @@ mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryW
 	
 	app.post('/api/shareVideo', async (req, res) => {
 		const { authorization } = req.headers
-		const {roomId, videoId, videoTitle, videoKind} = req.body
+		const {roomId, videoId, videoTitle, videoKind, videoThumbnail} = req.body
 	
 		if (!authorization) return res.json({status: 'Unauthorized', error: 'User has not authorized yet.'})
 	
 		try {
 			const token = authorization.split('Bearer ')[1]
 			const {id} = jwt.verify(token, JWT_SECRET)
+			const user = await User.findOne({ _id: id }).lean()
 	
 			if(id) {
 				// return res.json({status: 'success'})
@@ -366,7 +371,12 @@ mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryW
 								videoId,
 								videoTitle,
 								videoKind,
-								sender: { _id: id}
+								videoThumbnail,
+								sender: { 
+									_id: id,
+									firstName: user.firstName,
+									lastName: user.lastName,
+								}
 							}
 						}
 					}
@@ -392,6 +402,8 @@ mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryW
 		try {
 			const token = authorization.split('Bearer ')[1]
 			const {id} = jwt.verify(token, JWT_SECRET)
+			const user = await User.findOne({ _id: id }).lean()
+
 	
 			if(id) {
 				
@@ -406,7 +418,11 @@ mongoose.connect('mongodb+srv://admin:admin@cluster0.k2dxyt2.mongodb.net/?retryW
 								bookTitle,
 								bookAuthors: [...bookAuthors],
 								bookPreviewLink,
-								sender: { _id: id}
+								sender: { 
+									_id: id,
+									firstName: user.firstName,
+									lastName: user.lastName,
+								}
 							}
 						}
 					}
