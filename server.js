@@ -442,13 +442,39 @@ app.post('/api/shareBook', async (req, res) => {
 })
 
 io.on('connection', socket => {
-	app.post('/api/sendMessage', (req, res) => {
-		return res.json({msg: 'hi'})
+	socket.on('joinRoom', ({_id, roomId}) => {
+		const user = await User.findOne({_id}).lean()
+		const testUser = {
+			_id,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			roomId,
+		}
+		socket.join(testUser.roomId)
+		socket.emit('joinConfirm', 'joined successfully')
 	})
-	socket.on('message', message => {
-		console.log(message)
+	socket.on('sendMessage', message => {
+			
 	})
-	console.log('connection event works!')
+	// app.post('/api/sendMessage', (req, res) => {
+	// const { authorization } = req.headers
+	// const {roomId, content} = req.body
+	// try {
+	// 	const token = authorization.split('Bearer ')[1]
+	// 	const {id} = jwt.verify(token, JWT_SECRET)
+
+	// 	const user = await User.fineOne({ _id: id }).lean()
+	// 	if (id) {
+			
+	// 		console.log('connection event works!')
+
+	// 	}
+		
+	// } catch (error) {
+	// 	console.log(error);
+	// 	res.json({...error})
+	// }
+	// })
 })
 
 // })

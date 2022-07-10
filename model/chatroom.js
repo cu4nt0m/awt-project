@@ -21,6 +21,8 @@ const ChatroomSchema = new mongoose.Schema(
         joinedUsers: [
             {
 				_id: String,
+				firstName: String,
+				lastName: String
 			
 			} //user1
         ],
