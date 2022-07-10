@@ -5,6 +5,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const User = require('./model/user')
 const Chatroom = require('./model/chatroom')
+const moment = require('moment');
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
@@ -487,6 +488,19 @@ try {
 }
 })
 
+// app.get('/api/getMessages', async (req, res) => {
+// 	const { authorization } = req.headers
+
+// 	try {
+// 		const {id} = jwt.verify(token, JWT_SECRET)
+// 		const user = await User.fineOne({ _id: id }).lean()
+	
+// 	} catch (error) {
+		
+// 	}
+
+// })
+
 io.on('connection', socket => {
 	socket.on('accessChannel', async ({_id, roomId}) => {
 		const user = await User.findOne({_id}).lean()
@@ -498,14 +512,23 @@ io.on('connection', socket => {
 			roomId,
 		}
 		socket.join(testUser.roomId)
-		// socket.emit('joinConfirm', room.messages)
-		socket.broadcast.to(roomId).emit('sendText', 'some string for broadcasting')
+
+		//this socket is for receiving all the messages from all users from that room
+		socket.emit('joinConfirm', room.messages)
+		// socket.broadcast.to(roomId).emit('sendText', 'some string for broadcasting')
                 //  renderMessage(announcer, `${newUser.username}  ` + notify));
 			
 	})
-	socket.on('sendMessage', message => {
-		console.log('sendMessage event is working: ', message)
+	socket.on('sendMessage', ({roomId, _id, content}) => {
+		const user = await User.findOne({_id}).lean()
 
+		const message = {
+			content: content,
+			sender: `${user.firstName} ${user.lastName}`,
+			time: moment().format('h:mm a')
+		}
+		console.log('sendMessage event is working: ', message)
+		io.to(roomId).emit('message', message)
 	})
 })
 
