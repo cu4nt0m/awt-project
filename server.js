@@ -458,9 +458,39 @@ app.post('/api/shareBook', async (req, res) => {
 	}
 })
 
+app.post('/api/sendMessage', async (req, res) => {
+const { authorization } = req.headers
+const {content, roomId} = req.body
+try {
+	const token = authorization.split('Bearer ')[1]
+	const {id} = jwt.verify(token, JWT_SECRET)
+	const user = await User.fineOne({ _id: id }).lean()
+	
+	if (id) {
+		const response = await Chatroom.updateOne({ _id: roomId }, {
+			$push: {
+				messages: {
+					content: content,
+					sender: {
+						_id: id,
+						firstName: user.firstName,
+						lastName: user.lastName
+					}
+				}
+			}
+		})
+	}
+	
+} catch (error) {
+	console.log(error);
+	res.json({...error})
+}
+})
+
 io.on('connection', socket => {
 	socket.on('accessChannel', async ({_id, roomId}) => {
 		const user = await User.findOne({_id}).lean()
+		const room = await Chatroom.findOne({ _id: roomId})
 		const testUser = {
 			_id,
 			firstName: user.firstName,
@@ -468,30 +498,15 @@ io.on('connection', socket => {
 			roomId,
 		}
 		socket.join(testUser.roomId)
-		socket.emit('joinConfirm', 'joined successfully')
+		// socket.emit('joinConfirm', room.messages)
+		socket.broadcast.to(roomId).emit('sendText', 'some string for broadcasting')
+                //  renderMessage(announcer, `${newUser.username}  ` + notify));
+			
 	})
 	socket.on('sendMessage', message => {
 		console.log('sendMessage event is working: ', message)
+
 	})
-	// app.post('/api/sendMessage', (req, res) => {
-	// const { authorization } = req.headers
-	// const {roomId, content} = req.body
-	// try {
-	// 	const token = authorization.split('Bearer ')[1]
-	// 	const {id} = jwt.verify(token, JWT_SECRET)
-
-	// 	const user = await User.fineOne({ _id: id }).lean()
-	// 	if (id) {
-			
-	// 		console.log('connection event works!')
-
-	// 	}
-		
-	// } catch (error) {
-	// 	console.log(error);
-	// 	res.json({...error})
-	// }
-	// })
 })
 
 // })
